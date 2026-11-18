@@ -2,6 +2,7 @@
 import { marked } from "../vendor/marked.esm.js";
 import DOMPurify from "../vendor/purify.es.mjs";
 import { LEVELS, profBonus, SLOT_PRESETS, PACT, COUNT_MODES, ordinal } from "./data.js";
+import { spellLink } from "./spells.js";
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -152,15 +153,47 @@ function coreTraits2014(cls) {
     ${c.equipmentWealth ? `<p class="small-note">Alternatively, you can start with ${esc(c.equipmentWealth)} to buy your own equipment.</p>` : ""}`;
 }
 
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 function spellListSection(cls) {
   const sc = cls.spellcasting;
-  const groups = sc.spellList
-    .map((txt, lvl) => ({ lvl, spells: txt.split(/[\n,]/).map((s) => s.trim()).filter(Boolean).sort((a, b) => a.localeCompare(b)) }))
+  const byLevel = Array.from({ length: 10 }, () => new Map());
+  const add = (lvl, name, href) => { if (name && !byLevel[lvl]?.has(name)) byLevel[lvl]?.set(name, href); };
+  sc.picked.forEach((p) => add(Number(p.level), p.name, spellLink(p.name)));
+  sc.spellList.forEach((txt, lvl) => txt.split(/[\n,]/).map((s) => s.trim()).filter(Boolean).forEach((n) => add(lvl, n, spellLink(n))));
+  sc.customSpells.forEach((sp) => add(Number(sp.level) || 0, sp.name, `#spell-${slug(sp.name)}`));
+  const groups = byLevel
+    .map((m, lvl) => ({ lvl, spells: [...m.entries()].sort((a, b) => a[0].localeCompare(b[0])) }))
     .filter((g) => g.spells.length);
   if (!groups.length) return "";
   return `<h3>${esc(cls.name || "Class")} Spell List</h3>
     ${groups.map((g) => `<h5>${g.lvl === 0 ? (is2014(cls) ? "Cantrips (0 Level)" : "Cantrips (Level 0 Spells)") : is2014(cls) ? `${ordinal(g.lvl)} Level` : `Level ${g.lvl} Spells`}</h5>
-      <ul class="spell-list">${g.spells.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>`).join("")}`;
+      <ul class="spell-list">${g.spells.map(([n, href]) => `<li><a href="${esc(href)}"${href.startsWith("#") ? "" : ' target="_blank" rel="noopener"'}>${esc(n)}</a></li>`).join("")}</ul>`).join("")}`;
+}
+
+function customSpellsSection(cls) {
+  const list = [...cls.spellcasting.customSpells].sort((a, b) => a.name.localeCompare(b.name));
+  if (!list.length) return "";
+  const name = esc(cls.name || "Class");
+  const meta = (sp) => {
+    const l = Number(sp.level) || 0, school = esc(sp.school);
+    if (is2014(cls)) return l === 0 ? `${school} cantrip` : `${ordinal(l)}-level ${school.toLowerCase()}${sp.ritual ? " (ritual)" : ""}`;
+    return `${l === 0 ? `${school} Cantrip` : `Level ${l} ${school}`} (${name})`;
+  };
+  const line = (k, v) => (v ? `<p class="spell-stat"><strong>${k}:</strong> ${esc(v)}</p>` : "");
+  return `<section class="custom-spells">
+    ${img("heart_divider", "divider", "")}
+    <h2>${is2014(cls) ? "Spells" : "New Spells"}</h2>
+    ${list.map((sp) => `<section class="spell-block" id="spell-${slug(sp.name)}">
+      <h4>${esc(sp.name || "Untitled")}</h4>
+      <p class="spell-meta"><em>${meta(sp)}</em></p>
+      ${line("Casting Time", !is2014(cls) && sp.ritual && sp.castingTime ? `${sp.castingTime} or Ritual` : sp.castingTime)}
+      ${line("Range", sp.range)}
+      ${line("Components", sp.components)}
+      ${line("Duration", sp.duration)}
+      ${md(sp.body)}
+    </section>`).join("")}
+  </section>`;
 }
 
 function subclassSection(cls, s) {
@@ -232,6 +265,7 @@ export function renderDocument(cls) {
       ${img("ornamental_angel", "tailpiece", "")}
     </section>
     ${cls.subclasses.map((s) => subclassSection(cls, s)).join("")}
+    ${sc.enabled ? customSpellsSection(cls) : ""}
     <footer class="doc-credits">
       <p>${name} is unofficial homebrew content, not approved or endorsed by Wizards of the Coast.</p>
       <p>${srd}</p>

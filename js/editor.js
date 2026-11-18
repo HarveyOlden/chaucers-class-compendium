@@ -1,9 +1,10 @@
 // The form side of the app: one panel per book tab.
 import { store, changed, getPath, setPath } from "./state.js";
 import { esc } from "./render.js";
+import { SPELLS, SPELL_CLASSES, SCHOOLS } from "./spells.js";
 import {
   ABILITIES, SKILLS, HIT_DICE, LEVELS, SLOT_PRESETS, COUNT_PRESETS, COUNT_MODES, RULESETS, IMAGES,
-  newFeature, newSubclass, uid, ordinal,
+  newFeature, newSubclass, newCustomSpell, uid, ordinal,
 } from "./data.js";
 
 export const TABS = [
@@ -16,6 +17,8 @@ export const TABS = [
 ];
 
 let activeSubclass = 0;
+let spellSearch = "";
+const openSpellLevels = new Set();
 let lastUndo = null;
 
 // ---------- small HTML builders ----------
@@ -76,6 +79,55 @@ const spotSelect = (path) => select("Illustration", path,
   [{ value: "", label: "None" }, ...Object.entries(IMAGES.spots).map(([value, label]) => ({ value, label }))], { cls: "spot-select" });
 
 const emptyState = (image) => `<div class="empty-state"><img src="img/${image}.png" alt=""></div>`;
+
+const SPELL_LEVELS = Array.from({ length: 10 }, (_, l) => ({ value: l, label: l === 0 ? "Cantrip" : `Level ${l}` }));
+
+function spellPicker(sc) {
+  const all = SPELLS[store.cls.ruleset];
+  const picked = new Set(sc.picked.map((p) => p.name));
+  const q = spellSearch.trim().toLowerCase();
+  const levels = Array.from({ length: 10 }, (_, l) => all.filter((s) => s[1] === l));
+  return `<div class="row">
+      <label class="field grow"><span>Start from</span><select id="spell-class">
+        ${SPELL_CLASSES.map((c, i) => `<option value="${i}">${c}</option>`).join("")}</select></label>
+      ${btn("Replace list", "load-spells", { mode: "replace" })}
+      ${btn("Add to list", "load-spells", { mode: "add" })}
+      ${btn("Clear", "clear-spells", {}, "danger")}
+    </div>
+    <div class="row">
+      <label class="field grow"><span>Search</span><input type="search" id="spell-search" value="${esc(spellSearch)}"></label>
+      <span class="spell-total">${picked.size} selected</span>
+    </div>
+    <div class="spell-picker">
+      ${levels.map((list, l) => list.length ? `<details data-level="${l}" ${openSpellLevels.has(l) || q ? "open" : ""}>
+        <summary>${l === 0 ? "Cantrips" : `Level ${l}`} <span class="lvl-count">${list.filter((s) => picked.has(s[0])).length} / ${list.length}</span></summary>
+        <div class="spell-grid">${list.map((s) => `<label class="check" title="${esc(SCHOOLS[s[2]])} · ${esc(s[3].map((c) => SPELL_CLASSES[c]).join(", "))}" ${q && !s[0].toLowerCase().includes(q) ? "hidden" : ""}>
+          <input type="checkbox" data-spell="${esc(s[0])}" data-spell-level="${l}" ${picked.has(s[0]) ? "checked" : ""}> ${esc(s[0])}</label>`).join("")}</div>
+      </details>` : "").join("")}
+    </div>`;
+}
+
+function customSpellEditor(sp, i) {
+  const p = `spellcasting.customSpells.${i}`;
+  return `<div class="card">
+    <div class="row">
+      ${field("Name", `${p}.name`, { cls: "grow" })}
+      ${select("Level", `${p}.level`, SPELL_LEVELS, { num: true, cls: "narrow" })}
+      ${select("School", `${p}.school`, SCHOOLS.map((s) => ({ value: s, label: s })), { cls: "narrow" })}
+    </div>
+    <div class="row">
+      ${field("Casting time", `${p}.castingTime`, { cls: "grow" })}
+      ${field("Range", `${p}.range`, { cls: "grow" })}
+    </div>
+    <div class="row">
+      ${field("Components", `${p}.components`, { cls: "grow" })}
+      ${field("Duration", `${p}.duration`, { cls: "grow" })}
+      ${check("Ritual", `${p}.ritual`)}
+    </div>
+    ${mdField("Description", `${p}.body`, { rows: 5 })}
+    <div class="card-actions">${btn("Delete spell", "delete", { list: "spellcasting.customSpells", index: i, what: "spell" }, "danger small")}</div>
+  </div>`;
+}
 
 const levelOptions = (levels = LEVELS) => levels.map((l) => ({ value: l, label: `Level ${l}` }));
 
@@ -220,8 +272,14 @@ const panels = {
       ${sc.countMode !== "none" ? levelRow(COUNT_MODES[sc.countMode].column, "spellcasting.counts") : ""}
       ${mdField("Spellcasting description", "spellcasting.description", { rows: 10 })}
       <h3 class="sub">Spell list</h3>
-      ${sc.spellList.map((_, lvl) => `<label class="field"><span>${lvl === 0 ? "Cantrips" : `Level ${lvl} spells`} (one per line)</span>
-        <textarea rows="2" data-path="spellcasting.spellList.${lvl}">${esc(sc.spellList[lvl])}</textarea></label>`).join("")}`;
+      ${spellPicker(sc)}
+      <details class="manual-spells"><summary>Type other spells</summary>
+        ${sc.spellList.map((_, lvl) => `<label class="field"><span>${lvl === 0 ? "Cantrips" : `Level ${lvl} spells`} (one per line)</span>
+          <textarea rows="2" data-path="spellcasting.spellList.${lvl}">${esc(sc.spellList[lvl])}</textarea></label>`).join("")}
+      </details>
+      <h3 class="sub">Custom spells</h3>
+      ${sc.customSpells.map((sp, i) => customSpellEditor(sp, i)).join("")}
+      ${btn("+ Add custom spell", "add-custom-spell")}`;
   },
 
   subclasses() {
@@ -366,6 +424,24 @@ const actions = {
     let last = "";
     for (let i = 0; i < arr.length; i++) { if (String(arr[i] ?? "").trim() === "") arr[i] = last; else last = arr[i]; }
   },
+  "add-custom-spell": () => store.cls.spellcasting.customSpells.push(newCustomSpell()),
+  "load-spells": ({ mode }) => {
+    const sc = store.cls.spellcasting;
+    const cls = Number(document.getElementById("spell-class").value);
+    const list = SPELLS[store.cls.ruleset].filter((s) => s[3].includes(cls)).map((s) => ({ name: s[0], level: s[1] }));
+    const previous = sc.picked;
+    if (mode === "replace") sc.picked = list;
+    else {
+      const have = new Set(sc.picked.map((p) => p.name));
+      sc.picked = [...sc.picked, ...list.filter((s) => !have.has(s.name))];
+    }
+    showToast(`${sc.picked.length} spells selected.`, () => { sc.picked = previous; changed({ structural: true }); renderPanel(); });
+  },
+  "clear-spells": () => {
+    const sc = store.cls.spellcasting, previous = sc.picked;
+    sc.picked = [];
+    showToast("Spell list cleared.", () => { sc.picked = previous; changed({ structural: true }); renderPanel(); });
+  },
   "apply-counts": () => {
     const sc = store.cls.spellcasting;
     const p = COUNT_PRESETS[store.cls.ruleset][document.getElementById("count-preset").value];
@@ -376,11 +452,54 @@ const actions = {
   },
 };
 
+function updateSpellCounts() {
+  const picked = new Set(store.cls.spellcasting.picked.map((p) => p.name));
+  panelEl.querySelector(".spell-total").textContent = `${picked.size} selected`;
+  panelEl.querySelectorAll(".spell-picker details").forEach((d) => {
+    const boxes = [...d.querySelectorAll("[data-spell]")];
+    d.querySelector(".lvl-count").textContent = `${boxes.filter((b) => b.checked).length} / ${boxes.length}`;
+  });
+}
+
+function toggleSpell(box) {
+  const sc = store.cls.spellcasting, name = box.dataset.spell;
+  sc.picked = sc.picked.filter((p) => p.name !== name);
+  if (box.checked) sc.picked.push({ name, level: Number(box.dataset.spellLevel) });
+  updateSpellCounts();
+  changed();
+}
+
+function filterSpells(value) {
+  spellSearch = value;
+  const q = value.trim().toLowerCase();
+  panelEl.querySelectorAll(".spell-picker details").forEach((d) => {
+    let any = false;
+    d.querySelectorAll(".spell-grid label").forEach((l) => {
+      const show = !q || l.textContent.toLowerCase().includes(q);
+      l.hidden = !show;
+      any ||= show;
+    });
+    d.hidden = !any;
+    if (q) d.open = true;
+  });
+}
+
 export function initEditor(el, tabChange) {
   panelEl = el;
   onTabChange = tabChange;
-  el.addEventListener("input", (e) => { if (e.target.type !== "checkbox" && e.target.tagName !== "SELECT") handleInput(e); });
-  el.addEventListener("change", (e) => { if (e.target.type === "checkbox" || e.target.tagName === "SELECT") handleInput(e); });
+  el.addEventListener("input", (e) => {
+    if (e.target.id === "spell-search") return filterSpells(e.target.value);
+    if (e.target.type !== "checkbox" && e.target.tagName !== "SELECT") handleInput(e);
+  });
+  el.addEventListener("change", (e) => {
+    if (e.target.dataset.spell !== undefined) return toggleSpell(e.target);
+    if (e.target.type === "checkbox" || e.target.tagName === "SELECT") handleInput(e);
+  });
+  el.addEventListener("toggle", (e) => {
+    const lvl = e.target.dataset?.level;
+    if (lvl === undefined) return;
+    e.target.open ? openSpellLevels.add(Number(lvl)) : openSpellLevels.delete(Number(lvl));
+  }, true);
   el.addEventListener("click", (e) => {
     const fmt = e.target.closest("[data-fmt]");
     if (fmt) return format(fmt.dataset.fmt, fmt.closest(".md-field").querySelector("textarea"));

@@ -123,6 +123,11 @@ export const newSubclass = () => ({
   id: uid(), name: "New Subclass", header: "devil_header", illustration: "", flavour: "", features: [],
 });
 
+export const newCustomSpell = () => ({
+  id: uid(), name: "New Spell", level: 1, school: "Evocation", ritual: false,
+  castingTime: "", range: "", components: "", duration: "", body: "",
+});
+
 export const SCHEMA_VERSION = 1;
 
 export function defaultClass(ruleset = "2014") {
@@ -182,6 +187,8 @@ export function defaultClass(ruleset = "2014") {
       counts: COUNT_PRESETS[ruleset].wizard.counts.slice(),
       customSlots: LEVELS.map((l) => SLOT_PRESETS.full.slots(l)),
       spellList: Array.from({ length: 10 }, () => ""),
+      picked: [],
+      customSpells: [],
     },
     subclasses: [],
   };

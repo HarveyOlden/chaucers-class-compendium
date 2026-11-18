@@ -51,6 +51,7 @@ export function migrate(data) {
   // Future schema upgrades go here: if (data.schema === 1) { ...; data.schema = 2; }
   const merged = mergeDefaults(data, defaultClass(data.ruleset === "2024" ? "2024" : "2014"));
   for (const sec of merged.sections) mergeDefaults(sec, { title: "", body: "", illustration: "" });
+  for (const sp of merged.spellcasting.customSpells) mergeDefaults(sp, { name: "", level: 1, school: "Evocation", ritual: false, castingTime: "", range: "", components: "", duration: "", body: "" });
   for (const f of merged.features) mergeDefaults(f, { kind: "standard", body: "", choose: 1, options: [], level: 1, name: "" });
   for (const s of merged.subclasses) {
     mergeDefaults(s, { name: "", header: "devil_header", illustration: "", flavour: "", features: [] });

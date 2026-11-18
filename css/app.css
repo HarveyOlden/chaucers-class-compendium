@@ -154,6 +154,15 @@ fieldset { border: 1px solid var(--parchment-deep); border-radius: 3px; margin: 
 .slot-grid th { font-family: var(--sc-font); font-weight: normal; color: var(--ink-faded); padding: 0 .2rem; }
 .slot-grid input { width: 2.4em; padding: .1em; text-align: center; }
 
+.spell-total { font-style: italic; color: var(--ink-faded); margin-bottom: 1.1rem; white-space: nowrap; }
+.spell-picker { margin-bottom: 1rem; }
+.spell-picker details, .manual-spells { border: 1px solid var(--parchment-deep); border-radius: 3px; margin-bottom: .4rem; background: rgba(251, 247, 238, .35); }
+.spell-picker summary, .manual-spells summary { cursor: pointer; padding: .3rem .7rem; font-family: var(--sc-font); color: var(--rubric); }
+.lvl-count { font-family: var(--body-font); font-style: italic; color: var(--ink-faded); font-size: .85em; margin-left: .4em; }
+.spell-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .15rem .8rem; padding: .3rem .8rem .6rem; font-size: .92rem; }
+.spell-grid label[hidden], .spell-picker details[hidden] { display: none; }
+.manual-spells { padding-bottom: .2rem; margin-bottom: 1rem; }
+.manual-spells .field { padding: 0 .8rem; }
 .pills { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
 .pill { border-radius: 999px; padding: .2em .9em; }
 .pill.active { background: var(--rubric); color: var(--paper-white); border-color: var(--rubric); }

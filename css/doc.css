@@ -87,6 +87,12 @@
 .doc .small-note { font-style: italic; font-size: .92em; }
 .doc .spell-list { columns: 2; column-gap: 1.2em; list-style: none; padding: 0; margin-bottom: .8em; }
 .doc .spell-list li { break-inside: avoid; }
+.doc .spell-list a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-faded); }
+.doc .spell-block { break-inside: avoid; margin-bottom: .6em; }
+.doc .spell-block h4 { margin-bottom: 0; }
+.doc .spell-meta { margin-bottom: .3em; }
+.doc .spell-stat { margin: 0; }
+.doc .spell-stat + p:not(.spell-stat) { margin-top: .4em; }
 
 /* cover */
 .doc .cover { min-height: 920px; display: flex; align-items: center; justify-content: center; padding: 2.5rem 9.5rem; text-align: center; }
@@ -116,6 +122,8 @@
   .doc > section { background: none; box-shadow: none; padding: 0; margin: 0; }
   .doc .class-main, .doc .subclass { columns: 2; column-gap: 7mm; }
   .doc .subclass { break-before: page; }
+  .doc .custom-spells { columns: 2; column-gap: 7mm; }
+  .doc .custom-spells .divider, .doc .custom-spells > h2 { column-span: all; }
   .doc .header-band, .doc .class-title, .doc .subclass-title, .doc .epigraph, .doc .class-table { column-span: all; }
   .doc .class-title { font-size: 2.9em; }
   .doc .feature { break-inside: auto; }
