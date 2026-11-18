@@ -1,0 +1,140 @@
+/* The book-style document: used for the live preview and for printing / PDF. */
+
+.doc {
+  --doc-size: 16px;
+  font-family: var(--body-font);
+  font-size: var(--doc-size);
+  line-height: 1.38;
+  color: var(--ink);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.doc > section {
+  background: var(--parchment);
+  background-image: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.25), transparent 70%);
+  box-shadow: 0 4px 18px rgba(0,0,0,.45);
+  padding: 2.2rem 2.6rem 2.4rem;
+  margin-bottom: 1.6rem;
+  position: relative;
+}
+.doc p { margin: 0 0 .55em; }
+.doc img { display: block; max-width: 100%; }
+
+/* headings */
+.doc h1, .doc h2, .doc h3, .doc h4, .doc h5 { color: var(--rubric); font-weight: normal; break-after: avoid; page-break-after: avoid; }
+.doc .class-title { font-family: var(--head-font); font-size: 2.7em; text-align: center; margin: .2em 0 .25em; letter-spacing: .02em; }
+.doc h2 { font-family: var(--sc-font); font-size: 1.7em; margin: 1em 0 .4em; border-bottom: 2px solid var(--parchment-deep); line-height: 1.1; }
+.doc .subclass-title { font-family: var(--head-font); font-size: 2em; text-align: center; border: none; margin-top: .3em; }
+.doc h3 { font-family: var(--head-font); font-size: 1.35em; margin: .9em 0 .25em; border-bottom: 1px solid var(--parchment-deep); }
+.doc h4 { font-family: var(--sc-font); font-size: 1.15em; margin: .8em 0 .2em; }
+.doc h4 .lvl { font-family: var(--body-font); font-style: italic; font-size: .75em; color: var(--ink-faded); margin-left: .3em; }
+.doc h5 { font-family: var(--sc-font); font-size: 1em; margin: .6em 0 .15em; color: var(--ink); }
+.doc .flavour h3, .doc .flavour h4 { margin-top: .6em; }
+
+/* decoration */
+.doc .header-band { width: 100%; margin: 0 auto .4em; }
+.doc .divider { width: 70%; margin: 1.2em auto .6em; opacity: .9; }
+.doc .spot { width: 62%; max-width: 300px; margin: .8em auto 1em; break-inside: avoid; }
+.doc .tailpiece { width: 36%; max-width: 200px; margin: 1.4em auto 0; break-inside: avoid; }
+.doc .dropcap > p:first-child::first-letter {
+  font-family: "UnifrakturMaguntia", var(--head-font);
+  color: var(--rubric);
+  float: left;
+  font-size: 3.9em;
+  line-height: .82;
+  padding: .06em .08em 0 0;
+}
+
+.doc .epigraph { font-style: italic; text-align: center; margin: 0 2.5em 1em; color: var(--ink-faded); }
+.doc .epigraph p { margin: 0; }
+.doc .epigraph footer { font-style: normal; font-family: var(--sc-font); font-size: .9em; margin-top: .2em; }
+
+/* sidebars: markdown blockquotes become boxed notes */
+.doc blockquote:not(.epigraph) {
+  margin: .8em 0;
+  padding: .6em .9em .3em;
+  background: var(--parchment-dark);
+  border-top: 3px double var(--ink-faded);
+  border-bottom: 3px double var(--ink-faded);
+  break-inside: avoid;
+}
+.doc blockquote h3, .doc blockquote h4 { margin-top: .1em; border: none; }
+
+.doc ul, .doc ol { margin: .2em 0 .6em; padding-left: 1.3em; }
+.doc li { margin-bottom: .15em; }
+
+/* choice features */
+.doc .options { margin: .3em 0 .5em; }
+.doc .option p:first-child { text-indent: 0; }
+.doc .runin { color: var(--ink); }
+.doc .option { margin-bottom: .35em; }
+
+/* tables */
+.doc table { width: 100%; border-collapse: collapse; margin: .6em 0 1em; font-size: .88em; break-inside: avoid; }
+.doc caption { font-family: var(--sc-font); color: var(--rubric); font-size: 1.15em; text-align: left; padding-bottom: .2em; }
+.doc th { font-family: var(--sc-font); font-weight: normal; text-align: left; padding: .2em .35em; border-bottom: 1px solid var(--ink-faded); }
+.doc td { padding: .18em .35em; vertical-align: top; }
+.doc tbody tr:nth-child(odd) td, .doc tbody tr:nth-child(odd) th { background: rgba(205, 185, 140, .38); }
+.doc .traits th { width: 38%; border-bottom: none; color: var(--ink); font-family: var(--body-font); font-weight: 600; }
+.doc .traits td, .doc .traits th { border-bottom: 1px solid rgba(122, 90, 62, .3); }
+.doc .class-table td, .doc .class-table th { text-align: center; }
+.doc .class-table .feat-col { text-align: left; }
+.doc .class-table.dense { font-size: .74em; }
+.doc .class-table .group th { border: none; text-align: center; font-size: .85em; color: var(--ink-faded); padding-bottom: 0; }
+
+.doc .trait { margin-bottom: .2em; }
+.doc .equipment { list-style: disc; }
+.doc .small-note { font-style: italic; font-size: .92em; }
+.doc .spell-list { columns: 2; column-gap: 1.2em; list-style: none; padding: 0; margin-bottom: .8em; }
+.doc .spell-list li { break-inside: avoid; }
+
+/* cover */
+.doc .cover { min-height: 920px; display: flex; align-items: center; justify-content: center; padding: 2.5rem 9.5rem; text-align: center; }
+.doc .cover-border { position: absolute; top: 2rem; bottom: 2rem; height: calc(100% - 4rem); width: auto; max-width: none; object-fit: fill; }
+.doc .cover-border.left { left: 1.6rem; }
+.doc .cover-border.right { right: 1.6rem; }
+.doc .cover-inner { display: flex; flex-direction: column; align-items: center; gap: .6rem; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.doc .cover-title { font-family: var(--head-font); font-size: 3.2em; margin: 0; line-height: 1.05; hyphens: auto; }
+.doc .cover-tagline { font-style: italic; font-size: 1.3em; margin: 0; }
+.doc .cover-crest { width: 62%; max-width: 360px; margin: 1.6rem auto; }
+.doc .cover-author { font-family: var(--sc-font); font-size: 1.3em; margin: 0; }
+.doc .cover-note { font-size: .95em; color: var(--ink-faded); margin-top: 1.4rem; }
+
+.doc .doc-credits { font-size: .72em; color: rgba(236, 224, 196, .75); padding: 0 1rem; }
+.doc .doc-credits p { margin: 0 0 .4em; }
+
+/* ---------- print / PDF ---------- */
+@media print {
+  html, body { background: white !important; height: auto; }
+  body > *:not(.workspace) { display: none !important; }
+  .workspace { display: block !important; height: auto !important; padding: 0 !important; }
+  .book, .preview-bar { display: none !important; }
+  .preview { display: block !important; }
+  .preview-scroll { overflow: visible !important; padding: 0 !important; }
+
+  .doc { --doc-size: 10.2pt; max-width: none; line-height: 1.3; }
+  .doc > section { background: none; box-shadow: none; padding: 0; margin: 0; }
+  .doc .class-main, .doc .subclass { columns: 2; column-gap: 7mm; }
+  .doc .subclass { break-before: page; }
+  .doc .header-band, .doc .class-title, .doc .subclass-title, .doc .epigraph, .doc .class-table { column-span: all; }
+  .doc .class-title { font-size: 2.9em; }
+  .doc .feature { break-inside: auto; }
+  .doc h4 + p { break-before: avoid; }
+
+  .doc .cover { break-after: page; height: 262mm; min-height: 0; padding: 0 44mm; }
+  body.letter .doc .cover { height: 245mm; }
+  .doc .cover-border { top: 0; bottom: 0; height: 100%; }
+  .doc .cover-border.left { left: 0; }
+  .doc .cover-border.right { right: 0; }
+
+  .doc .doc-credits { color: var(--ink-faded); break-before: avoid; column-span: none; margin-top: 6mm; padding: 0; font-size: 7.5pt; }
+
+  /* tables keep their shading when printed */
+  .doc tbody tr td, .doc tbody tr th, .doc blockquote { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* optional parchment paper */
+  body.print-parchment, body.print-parchment .workspace, body.print-parchment .preview {
+    background: var(--parchment) !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+}

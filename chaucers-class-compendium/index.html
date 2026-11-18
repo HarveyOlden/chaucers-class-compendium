@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chaucer's Class Compendium</title>
+  <link rel="icon" href="img/psuedo_d20.png">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/doc.css">
+  <style id="page-style"></style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="img/crest.png" alt="">
+      <h1>Chaucer's Class Compendium</h1>
+    </div>
+    <div class="status" id="save-status" aria-live="polite">Not saved yet</div>
+    <nav class="file-actions" aria-label="File">
+      <button type="button" id="btn-new">New</button>
+      <button type="button" id="btn-open">Open save…</button>
+      <input type="file" id="file-input" accept=".json,application/json" hidden>
+      <button type="button" id="btn-download">Download save</button>
+      <button type="button" id="btn-print" class="primary">Print / PDF</button>
+      <button type="button" id="btn-settings" aria-haspopup="dialog">⚙</button>
+    </nav>
+  </header>
+
+  <main class="workspace">
+    <section class="book" aria-label="Editor">
+      <nav class="tabs" role="tablist" id="tabs"></nav>
+      <div class="panel" id="panel" role="tabpanel"></div>
+    </section>
+    <section class="preview" aria-label="Preview">
+      <div class="preview-bar">
+        <span>Preview</span>
+      </div>
+      <div class="preview-scroll" id="preview-scroll">
+        <div id="doc-host"></div>
+      </div>
+    </section>
+  </main>
+
+  <button type="button" class="mobile-toggle" id="mobile-toggle">Show preview</button>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>Settings</h2>
+      <label class="check"><input type="checkbox" id="pref-printer"> Printer-friendly PDF (white paper, saves ink)</label>
+      <label class="field"><span>Paper size</span>
+        <select id="pref-paper"><option value="A4">A4</option><option value="letter">US Letter</option></select>
+      </label>
+      <p class="small" id="last-download"></p>
+      <h3>Saving</h3>
+      <p class="small">Your class is saved automatically in this browser only. Nothing is sent anywhere. Clearing your browser's site data, using a private window, or not visiting for a while in Safari can delete it, so use <b>Download save</b> to keep a copy you can open on any device with <b>Open save…</b>.</p>
+      <h3>Credits</h3>
+      <p class="small">Chaucer's Class Compendium is unofficial fan content, not approved or endorsed by Wizards of the Coast. It includes material from the System Reference Documents 5.1 and 5.2 by Wizards of the Coast LLC, available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener">dndbeyond.com/srd</a>, licensed under the <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener">Creative Commons Attribution 4.0 International License</a>.</p>
+      <p class="small">Woodcuts courtesy of the <a href="https://www.museumplantinmoretus.be" target="_blank" rel="noopener">Museum Plantin-Moretus</a>, Antwerp. Fonts: EB Garamond, IM Fell, UnifrakturMaguntia (SIL Open Font License).</p>
+      <div class="dialog-actions"><button value="close" class="primary">Done</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
