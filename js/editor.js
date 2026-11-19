@@ -88,11 +88,10 @@ function spellPicker(sc) {
   const q = spellSearch.trim().toLowerCase();
   const levels = Array.from({ length: 10 }, (_, l) => all.filter((s) => s[1] === l));
   return `<div class="row">
-      <label class="field grow"><span>Start from</span><select id="spell-class">
+      <label class="field grow"><span>Tick a class's spells</span><select id="spell-class">
+        <option value="">—</option>
         ${SPELL_CLASSES.map((c, i) => `<option value="${i}">${c}</option>`).join("")}</select></label>
-      ${btn("Replace list", "load-spells", { mode: "replace" })}
-      ${btn("Add to list", "load-spells", { mode: "add" })}
-      ${btn("Clear", "clear-spells", {}, "danger")}
+      ${btn("Untick all", "clear-spells", {}, "danger")}
     </div>
     <div class="row">
       <label class="field grow"><span>Search</span><input type="search" id="spell-search" value="${esc(spellSearch)}"></label>
@@ -100,7 +99,7 @@ function spellPicker(sc) {
     </div>
     <div class="spell-picker">
       ${levels.map((list, l) => list.length ? `<details data-level="${l}" ${openSpellLevels.has(l) || q ? "open" : ""}>
-        <summary>${l === 0 ? "Cantrips" : `Level ${l}`} <span class="lvl-count">${list.filter((s) => picked.has(s[0])).length} / ${list.length}</span></summary>
+        <summary>${l === 0 ? "Cantrips" : `Level ${l}`} <span class="lvl-count">${list.filter((s) => picked.has(s[0])).length} ticked</span></summary>
         <div class="spell-grid">${list.map((s) => `<label class="check" title="${esc(SCHOOLS[s[2]])} · ${esc(s[3].map((c) => SPELL_CLASSES[c]).join(", "))}" ${q && !s[0].toLowerCase().includes(q) ? "hidden" : ""}>
           <input type="checkbox" data-spell="${esc(s[0])}" data-spell-level="${l}" ${picked.has(s[0]) ? "checked" : ""}> ${esc(s[0])}</label>`).join("")}</div>
       </details>` : "").join("")}
@@ -425,18 +424,7 @@ const actions = {
     for (let i = 0; i < arr.length; i++) { if (String(arr[i] ?? "").trim() === "") arr[i] = last; else last = arr[i]; }
   },
   "add-custom-spell": () => store.cls.spellcasting.customSpells.push(newCustomSpell()),
-  "load-spells": ({ mode }) => {
-    const sc = store.cls.spellcasting;
-    const cls = Number(document.getElementById("spell-class").value);
-    const list = SPELLS[store.cls.ruleset].filter((s) => s[3].includes(cls)).map((s) => ({ name: s[0], level: s[1] }));
-    const previous = sc.picked;
-    if (mode === "replace") sc.picked = list;
-    else {
-      const have = new Set(sc.picked.map((p) => p.name));
-      sc.picked = [...sc.picked, ...list.filter((s) => !have.has(s.name))];
-    }
-    showToast(`${sc.picked.length} spells selected.`, () => { sc.picked = previous; changed({ structural: true }); renderPanel(); });
-  },
+
   "clear-spells": () => {
     const sc = store.cls.spellcasting, previous = sc.picked;
     sc.picked = [];
@@ -457,7 +445,7 @@ function updateSpellCounts() {
   panelEl.querySelector(".spell-total").textContent = `${picked.size} selected`;
   panelEl.querySelectorAll(".spell-picker details").forEach((d) => {
     const boxes = [...d.querySelectorAll("[data-spell]")];
-    d.querySelector(".lvl-count").textContent = `${boxes.filter((b) => b.checked).length} / ${boxes.length}`;
+    d.querySelector(".lvl-count").textContent = `${boxes.filter((b) => b.checked).length} ticked`;
   });
 }
 
@@ -467,6 +455,16 @@ function toggleSpell(box) {
   if (box.checked) sc.picked.push({ name, level: Number(box.dataset.spellLevel) });
   updateSpellCounts();
   changed();
+}
+
+// Picking a class replaces the ticks with that class's spells; adjust freely afterwards.
+function tickClassSpells(value) {
+  if (value === "") return;
+  const sc = store.cls.spellcasting, previous = sc.picked, cls = Number(value);
+  sc.picked = SPELLS[store.cls.ruleset].filter((s) => s[3].includes(cls)).map((s) => ({ name: s[0], level: s[1] }));
+  renderPanel();
+  changed({ structural: true });
+  showToast(`Ticked ${sc.picked.length} ${SPELL_CLASSES[cls]} spells.`, () => { sc.picked = previous; changed({ structural: true }); renderPanel(); });
 }
 
 function filterSpells(value) {
@@ -493,6 +491,7 @@ export function initEditor(el, tabChange) {
   });
   el.addEventListener("change", (e) => {
     if (e.target.dataset.spell !== undefined) return toggleSpell(e.target);
+    if (e.target.id === "spell-class") return tickClassSpells(e.target.value);
     if (e.target.type === "checkbox" || e.target.tagName === "SELECT") handleInput(e);
   });
   el.addEventListener("toggle", (e) => {
